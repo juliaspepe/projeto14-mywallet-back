@@ -58,6 +58,15 @@ app.post("/sign-up", async (req, res) => {
     }
 });
 
+app.get('/sign-up', async (req, res) => {
+    try {
+        const userMywallet = await db.collection('users').find().toArray()
+        res.send(userMywallet)
+    } catch (err) {
+        console.log(err)
+    }
+})
+
 app.listen(process.env.PORT, () =>
     console.log(`Server running in port: ${process.env.PORT} `)
 )
