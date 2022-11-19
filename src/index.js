@@ -87,6 +87,44 @@ app.post("/sign-in", async (req, res) => {
     }
 });
 
+app.post("/entrada", async (req, res) => {
+    const { authorization } = req.headers;
+    const user = req.body
+    const { value, description } = req.body;
+    const day = dayjs().format('DD/MM');
+    const type = "entrada";
+
+    const userSchema = joi.object({
+        value: joi.string().length(10).pattern(/^[0-9]+$/).required(),
+        description: joi.string().required(),
+    });
+
+    try {
+        const userExists = await db.collection('sessions').findOne({ userId: user._id })
+        if (userExists) {
+            const validation = userSchema.validate({ value, description }, { abortEarly: false })
+
+            if (validation.error) {
+                return res.status(422).send(validation.error.details)
+            }
+        }
+
+        await db.collection('cashflow').insertOne({
+            value,
+            description,
+            day,
+            type
+        });
+        console.log('entrada cadastrada')
+        return res.sendStatus(201);
+
+    } catch (err) {
+        console.log(err)
+        res.sendStatus(500)
+    }
+
+})
+
 app.listen(process.env.PORT, () =>
     console.log(`Server running in port: ${process.env.PORT} `)
 )
